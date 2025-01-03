@@ -1,0 +1,33 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 010928179293.dkr.ecr.us-east-1.amazonaws.com
+
+  build:
+    commands:
+      - IMAGE_TAG=$(date +%Y%m%d%H%M%S)  # Generate a unique image tag
+      - echo "Building the Docker image for the application..."
+      - docker build -t 010928179293.dkr.ecr.us-east-1.amazonaws.com/node-app:$IMAGE_TAG .  # Build your app image
+      - echo "Pushing the Docker image to ECR..."
+      - docker push 010928179293.dkr.ecr.us-east-1.amazonaws.com/node-app:$IMAGE_TAG
+      - echo Writing image definitions file...
+      # Set container name for application and sidecar
+      - DOCKER_CONTAINER_NAME=sample
+      - NODE_EXPORTER_CONTAINER_NAME=node-exporter
+      # Correct way to append both containers to the imagedefinitions.json file
+      - printf '[{"name":"%s","imageUri":"%s"}' $DOCKER_CONTAINER_NAME 010928179293.dkr.ecr.us-east-1.amazonaws.com/node-app:$IMAGE_TAG > imagedefinitions.json
+      - printf ',{"name":"%s","imageUri":"%s"}]' $NODE_EXPORTER_CONTAINER_NAME 010928179293.dkr.ecr.us-east-1.amazonaws.com/node-exporter:node-exporter >> imagedefinitions.json
+      - echo $DOCKER_CONTAINER_NAME
+      - echo printing imagedefinitions.json
+      - cat imagedefinitions.json
+
+  post_build:
+    commands:
+      - echo "Build completed. Image pushed to ECR."
+
+artifacts:
+  files:
+    - imagedefinitions.json
