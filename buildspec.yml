@@ -22,7 +22,7 @@ phases:
       - docker push 010928179293.dkr.ecr.us-east-1.amazonaws.com/node-app:$IMAGE_TAG
       - echo Writing image definitions file...
       # Set container name for application and sidecar
-      - DOCKER_CONTAINER_NAME=sample
+      - DOCKER_CONTAINER_NAME=node-app
       - NODE_EXPORTER_CONTAINER_NAME=node-exporter
       # Correct way to append both containers to the imagedefinitions.json file
       - printf '[{"name":"%s","imageUri":"%s"}' $DOCKER_CONTAINER_NAME 010928179293.dkr.ecr.us-east-1.amazonaws.com/node-app:$IMAGE_TAG > imagedefinitions.json
